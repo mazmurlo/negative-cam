@@ -1,0 +1,15 @@
+<html>
+    <video autoplay></video>
+
+    <script>
+    navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then((localMediaStream) => {
+        const video = document.querySelector("video");
+        video.srcObject = localMediaStream;
+        })
+        .catch((error) => {
+        console.log("Rejected!", error);
+        });
+    </script>
+</html>
