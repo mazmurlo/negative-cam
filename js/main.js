@@ -24,7 +24,9 @@ async function getVideoDevices() {
         console.log("Video devices found:", videoDevices);
 
         // Start the first video device if available
-        if (videoDevices.length > 0) {
+        if (videoDevices.length = 1) {
+            fallback();
+        } else if (videoDevices.length > 0) {
             startStream(videoDevices[currentVideoIndex].deviceId);
         } else {
             console.log("No video devices found.");
@@ -58,15 +60,19 @@ async function startStream(deviceId) {
         console.log("Attempting to start stream with default video constraints...");
 
         // Fallback to default video if specific deviceId fails
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            videoElement.srcObject = stream;
-            videoElement.play();
+        fallback()
+    }
+}
 
-            console.log("Stream started successfully with default constraints.");
-        } catch (fallbackErr) {
-            console.error(`Fallback error: ${fallbackErr.name} - ${fallbackErr.message}`);
-        }
+async function fallback() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoElement.srcObject = stream;
+        videoElement.play();
+
+        console.log("Stream started successfully with default constraints.");
+    } catch (fallbackErr) {
+        console.error(`Fallback error: ${fallbackErr.name} - ${fallbackErr.message}`);
     }
 }
 
