@@ -35,7 +35,7 @@ async function getVideoDevices() {
 }
 
 // Function to start a video stream with a specific deviceId
-async function startStream(deviceId) {
+async function startStream() {
     if (stream) {
         console.log("Stopping current stream...");
         stream.getTracks().forEach(track => track.stop());
