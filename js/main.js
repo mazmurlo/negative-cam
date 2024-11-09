@@ -30,12 +30,13 @@ async function getVideoDevices() {
             console.log("No video devices found.");
         }
     } catch (err) {
-        console.error(`${err.name}: ${err.message}`);
+        console.error(`Failed to enumerate devices: ${err.name} - ${err.message}`);
     }
 }
 
 // Function to start a video stream with a specific deviceId
 async function startStream(deviceId) {
+    // Stop any previous stream if it exists
     if (stream) {
         console.log("Stopping current stream...");
         stream.getTracks().forEach(track => track.stop());
@@ -46,14 +47,26 @@ async function startStream(deviceId) {
     };
 
     try {
-        console.log(`Starting stream with device ID: ${deviceId}`);
+        console.log(`Attempting to start stream with device ID: ${deviceId}`);
         stream = await navigator.mediaDevices.getUserMedia(constraints);
         videoElement.srcObject = stream;
         videoElement.play();  // Ensure video element plays the stream
 
-        console.log("Stream started successfully.");
+        console.log("Stream started successfully with device ID.");
     } catch (err) {
-        console.error(`Error accessing video stream: ${err.message}`);
+        console.error(`Error accessing video stream with device ID ${deviceId}: ${err.message}`);
+        console.log("Attempting to start stream with default video constraints...");
+
+        // Fallback to default video if specific deviceId fails
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            videoElement.srcObject = stream;
+            videoElement.play();
+
+            console.log("Stream started successfully with default constraints.");
+        } catch (fallbackErr) {
+            console.error(`Fallback error: ${fallbackErr.name} - ${fallbackErr.message}`);
+        }
     }
 }
 
