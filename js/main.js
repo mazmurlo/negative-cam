@@ -77,3 +77,13 @@ switchButton.addEventListener("click", switchCamera);
 
 // Initialize video devices on page load
 getVideoDevices();
+
+navigator.mediaDevices
+    .getUserMedia({ video: true, audio: true })
+    .then((localMediaStream) => {
+      const video = document.querySelector("video");
+      video.srcObject = localMediaStream;
+    })
+    .catch((error) => {
+      console.log("Rejected!", error);
+    });
