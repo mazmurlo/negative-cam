@@ -5,23 +5,28 @@ let deviceIndex = 0;
 let devices = [];
 
 async function getStream() {
-  if (currentStream) {
-    currentStream.getTracks().forEach(track => track.stop());
-  }
-
-  try {
-    const constraints = {
-      video: {
-        deviceId: devices[deviceIndex].deviceId ? { exact: devices[deviceIndex].deviceId } : undefined
+    try {
+      const constraints = {
+        video: {
+          deviceId: devices[deviceIndex] ? { exact: devices[deviceIndex].deviceId } : undefined
+        }
+      };
+  
+      if (currentStream && currentStream.getVideoTracks().length > 0) {
+        // Try to switch camera by applying new constraints to the existing video track
+        const [videoTrack] = currentStream.getVideoTracks();
+        await videoTrack.applyConstraints(constraints.video);
+        console.log("Switched to device:", devices[deviceIndex].label);
+      } else {
+        // If no stream is available, request a new one
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoElement.srcObject = currentStream;
+        console.log("Streaming from device:", devices[deviceIndex].label);
       }
-    };
-
-    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-    videoElement.srcObject = currentStream;
-  } catch (err) {
-    console.error('Error accessing media devices.', err);
+    } catch (err) {
+      console.error("Error switching media devices:", err);
+    }
   }
-}
 
 async function initDevices() {
   try {
@@ -41,13 +46,13 @@ async function initDevices() {
 }
 
 switchButton.addEventListener('click', () => {
-  if (devices.length > 1) {
-    deviceIndex = (deviceIndex + 1) % devices.length;
-    console.log(`Switching to device: ${devices[deviceIndex].label}`);
-    getStream();
-  } else {
-    console.log('Only one camera detected.');
-  }
-});
+    if (devices.length > 1) {
+      deviceIndex = (deviceIndex + 1) % devices.length;
+      console.log("Switching to device index:", deviceIndex);
+      getStream();
+    } else {
+      console.log("Only one device detected.");
+    }
+  });
 
 initDevices();
