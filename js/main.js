@@ -8,22 +8,22 @@ let stream = null; // Current media stream
 // Function to get all video sources
 async function getVideoDevices() {
     try {
-        // Check if enumerateDevices is supported
         if (!navigator.mediaDevices?.enumerateDevices) {
             console.log("enumerateDevices() not supported.");
             return;
         }
 
         // Request permission to access media devices if needed
+        console.log("Requesting initial media access for permissions...");
         await navigator.mediaDevices.getUserMedia({ video: true });
 
         // Get list of all devices
         const devices = await navigator.mediaDevices.enumerateDevices();
-
-        // Filter only video input devices (cameras)
         videoDevices = devices.filter(device => device.kind === "videoinput");
 
-        // Start the first video device
+        console.log("Video devices found:", videoDevices);
+
+        // Start the first video device if available
         if (videoDevices.length > 0) {
             startStream(videoDevices[currentVideoIndex].deviceId);
         } else {
@@ -36,8 +36,8 @@ async function getVideoDevices() {
 
 // Function to start a video stream with a specific deviceId
 async function startStream(deviceId) {
-    // Stop any previous stream if it exists
     if (stream) {
+        console.log("Stopping current stream...");
         stream.getTracks().forEach(track => track.stop());
     }
 
@@ -46,9 +46,12 @@ async function startStream(deviceId) {
     };
 
     try {
-        // Get media stream for the specified device
+        console.log(`Starting stream with device ID: ${deviceId}`);
         stream = await navigator.mediaDevices.getUserMedia(constraints);
         videoElement.srcObject = stream;
+        videoElement.play();  // Ensure video element plays the stream
+
+        console.log("Stream started successfully.");
     } catch (err) {
         console.error(`Error accessing video stream: ${err.message}`);
     }
@@ -63,6 +66,7 @@ function switchCamera() {
 
     // Update currentVideoIndex to the next device, loop back if at the end
     currentVideoIndex = (currentVideoIndex + 1) % videoDevices.length;
+    console.log(`Switching to device at index: ${currentVideoIndex}`);
 
     // Start the new video device
     startStream(videoDevices[currentVideoIndex].deviceId);
