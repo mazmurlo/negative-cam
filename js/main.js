@@ -8,14 +8,11 @@ let stream = null; // Current media stream
 // Function to get all video sources
 async function getVideoDevices() {
     try {
+        // Check if enumerateDevices is supported
         if (!navigator.mediaDevices?.enumerateDevices) {
             console.log("enumerateDevices() not supported.");
             return;
         }
-
-        // Request permission to access media devices if needed
-        console.log("Requesting initial media access for permissions...");
-        await navigator.mediaDevices.getUserMedia({ video: true });
 
         // Get list of all devices
         const devices = await navigator.mediaDevices.enumerateDevices();
@@ -24,12 +21,8 @@ async function getVideoDevices() {
         console.log("Video devices found:", videoDevices);
 
         // Start the first video device if available
-        if (videoDevices.length = 1) {
-            fallback();
-            console.log("Doing fallback!")
-        } else if (videoDevices.length > 1) {
+        if (videoDevices.length > 0) {
             startStream(videoDevices[currentVideoIndex].deviceId);
-            console.log("Not doing fallback!")
         } else {
             console.log("No video devices found.");
         }
@@ -62,19 +55,29 @@ async function startStream(deviceId) {
         console.log("Attempting to start stream with default video constraints...");
 
         // Fallback to default video if specific deviceId fails
-        fallback()
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            videoElement.srcObject = stream;
+            videoElement.play();
+
+            console.log("Stream started successfully with default constraints.");
+        } catch (fallbackErr) {
+            console.error(`Fallback error: ${fallbackErr.name} - ${fallbackErr.message}`);
+        }
     }
 }
 
-async function fallback() {
+// Function to request initial permissions and then list devices
+async function initialize() {
     try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        videoElement.srcObject = stream;
-        videoElement.play();
-
-        console.log("Stream started successfully with default constraints.");
-    } catch (fallbackErr) {
-        console.error(`Fallback error: ${fallbackErr.name} - ${fallbackErr.message}`);
+        // Request permission only once, without using the result
+        console.log("Requesting initial media access for permissions...");
+        await navigator.mediaDevices.getUserMedia({ video: true });
+        
+        // Then list video devices
+        await getVideoDevices();
+    } catch (err) {
+        console.error(`Initial permissions request failed: ${err.name} - ${err.message}`);
     }
 }
 
@@ -96,5 +99,5 @@ function switchCamera() {
 // Event listener for the switch button
 switchButton.addEventListener("click", switchCamera);
 
-// Initialize video devices on page load
-getVideoDevices();
+// Request initial permissions and list devices once on page load
+initialize();
