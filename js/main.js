@@ -4,21 +4,18 @@ let currentStream;
 let deviceIndex = 0;
 let devices = [];
 
-// Function to get and display the video stream
 async function getStream() {
   if (currentStream) {
     currentStream.getTracks().forEach(track => track.stop());
   }
 
   try {
-    // Set up constraints with the selected device ID
     const constraints = {
       video: {
         deviceId: devices[deviceIndex].deviceId ? { exact: devices[deviceIndex].deviceId } : undefined
       }
     };
 
-    // Request the stream with the constraints
     currentStream = await navigator.mediaDevices.getUserMedia(constraints);
     videoElement.srcObject = currentStream;
   } catch (err) {
@@ -26,11 +23,12 @@ async function getStream() {
   }
 }
 
-// Function to initialize video devices and get the first stream
 async function initDevices() {
   try {
     const allDevices = await navigator.mediaDevices.enumerateDevices();
     devices = allDevices.filter(device => device.kind === 'videoinput');
+
+    console.log(devices); // Check available devices
 
     if (devices.length > 0) {
       getStream();
@@ -42,13 +40,14 @@ async function initDevices() {
   }
 }
 
-// Event listener to switch video devices
 switchButton.addEventListener('click', () => {
   if (devices.length > 1) {
     deviceIndex = (deviceIndex + 1) % devices.length;
+    console.log(`Switching to device: ${devices[deviceIndex].label}`);
     getStream();
+  } else {
+    console.log('Only one camera detected.');
   }
 });
 
-// Initialize the devices on page load
 initDevices();
