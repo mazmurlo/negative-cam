@@ -26,8 +26,10 @@ async function getVideoDevices() {
         // Start the first video device if available
         if (videoDevices.length = 1) {
             fallback();
-        } else if (videoDevices.length > 0) {
+            console.log("Doing fallback!")
+        } else if (videoDevices.length > 1) {
             startStream(videoDevices[currentVideoIndex].deviceId);
+            console.log("Not doing fallback!")
         } else {
             console.log("No video devices found.");
         }
