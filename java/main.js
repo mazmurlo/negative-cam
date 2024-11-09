@@ -23,3 +23,14 @@ function getTheStream() {
     then(gotStream).catch(handleError);
 }
 
+function gotStream(stream) {
+    window.stream = stream; // make stream available to console
+    videoSelect.selectedIndex = [...videoSelect.options].
+      findIndex(option => option.text === stream.getVideoTracks()[0].label);
+    videoElement.srcObject = stream;
+  }
+  
+  function handleError(error) {
+    console.error('Error: ', error);
+  }
+
