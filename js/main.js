@@ -3,6 +3,7 @@ const switchButton = document.getElementById("switchButton");
 
 let videoDevices = []; // Array to store video devices
 let currentVideoIndex = 0; // Current video device index
+let stream = null; // Current media stream
 
 // Function to get all video sources
 async function getVideoDevices() {
@@ -12,6 +13,9 @@ async function getVideoDevices() {
             console.log("enumerateDevices() not supported.");
             return;
         }
+
+        // Request permission to access media devices if needed
+        await navigator.mediaDevices.getUserMedia({ video: true });
 
         // Get list of all devices
         const devices = await navigator.mediaDevices.enumerateDevices();
@@ -32,13 +36,18 @@ async function getVideoDevices() {
 
 // Function to start a video stream with a specific deviceId
 async function startStream(deviceId) {
+    // Stop any previous stream if it exists
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+
     const constraints = {
         video: { deviceId: { exact: deviceId } }
     };
 
     try {
         // Get media stream for the specified device
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
         videoElement.srcObject = stream;
     } catch (err) {
         console.error(`Error accessing video stream: ${err.message}`);
@@ -47,10 +56,9 @@ async function startStream(deviceId) {
 
 // Function to switch to the next video device
 function switchCamera() {
-    // Stop current video stream
-    const stream = videoElement.srcObject;
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+    if (videoDevices.length < 2) {
+        console.log("Not enough video devices to switch.");
+        return;
     }
 
     // Update currentVideoIndex to the next device, loop back if at the end
